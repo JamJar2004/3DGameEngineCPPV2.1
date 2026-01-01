@@ -1,39 +1,40 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
-#include "Engine/Core/Array.hpp"
+#include "Engine/Core/Buffer.hpp"
 
 class DeviceRenderBuffer
 {
 public:
     virtual ~DeviceRenderBuffer() = default;
 
-    virtual std::size_t SizeInBytes() const = 0;
+    [[nodiscard]] virtual std::size_t SizeInBytes() const = 0;
 
-    virtual void Update(ConstDynamicArraySlice instanceData) = 0;
+    virtual void Update(ConstDynamicBufferSlice instanceData) = 0;
 };
 
 using DeviceRenderBufferHandle = std::shared_ptr<DeviceRenderBuffer>;
 
-template<typename TElement>
+template<ShallowCopyable TElement>
 class LocalRenderBuffer
 {
 public:
-    Array<TElement> Elements;
+    Buffer<TElement> Elements;
 
-    void Update()
+    explicit LocalRenderBuffer(DeviceRenderBufferHandle deviceBuffer, size_t elementCount, const TElement& defaultValue) :
+        Elements(elementCount, defaultValue), m_deviceBuffer(std::move(deviceBuffer)) {}
+
+    void Update(size_t count)
     {
-        m_deviceBuffer->Update(Elements);
+        m_deviceBuffer->Update(Elements.AsSlice(0, count));
     }
 
     friend class RenderDevice;
 private:
-    explicit LocalRenderBuffer(const DeviceRenderBufferHandle& deviceBuffer, size_t elementCount) :
-        Elements(elementCount), m_deviceBuffer(deviceBuffer) {}
-
     const DeviceRenderBufferHandle m_deviceBuffer;
 };
 
-template<typename TElement>
+template<ShallowCopyable TElement>
 using LocalRenderBufferHandle = std::shared_ptr<LocalRenderBuffer<TElement>>;

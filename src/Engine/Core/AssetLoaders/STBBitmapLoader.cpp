@@ -3,11 +3,11 @@
 #include <iostream>
 #include <stb_image.h>
 
-BitmapBaseHandle STBBitmapLoader::Load(Scene& scene, std::filesystem::path path) const
+BitmapBaseHandle STBBitmapLoader::Load(const std::filesystem::path& path, const PixelFormat& desiredFormat) const
 {
     int width = 0;
     int height = 0;
-    uint8_t* pixels = stbi_load(path.c_str(), &width, &height, nullptr, static_cast<int>(Format.ChannelCount));
+    uint8_t* pixels = stbi_load(path.c_str(), &width, &height, nullptr, static_cast<int>(desiredFormat.ChannelCount));
 
     if (!pixels)
     {
@@ -15,8 +15,8 @@ BitmapBaseHandle STBBitmapLoader::Load(Scene& scene, std::filesystem::path path)
         return nullptr;
     }
 
-    BitmapBaseHandle result = Format.CreateBitmap(width, height, 1);
-    memcpy(result->GetPixels(), pixels, result->PixelCount * Format.Size);
+    BitmapBaseHandle result = desiredFormat.CreateBitmap(width, height, 1);
+    memcpy(result->GetPixels(), pixels, result->PixelCount * desiredFormat.Size);
     stbi_image_free(pixels);
     return result;
 }

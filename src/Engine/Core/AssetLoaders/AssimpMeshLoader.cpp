@@ -6,7 +6,7 @@
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
-static Model ProcessMesh(const aiMesh* mesh)
+static Model ProcessModel(const aiMesh* mesh)
 {
     std::vector<DefaultVertex> vertices;
     std::vector<uint32_t> indices;
@@ -60,8 +60,8 @@ static void ProcessNode(std::vector<Model>& models, aiNode *node, const aiScene 
 {
     for(size_t i = 0; i < node->mNumMeshes; i++)
     {
-        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        models.push_back(ProcessMesh(mesh));
+        const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        models.push_back(ProcessModel(mesh));
     }
 
     for(size_t i = 0; i < node->mNumChildren; i++)
@@ -70,10 +70,10 @@ static void ProcessNode(std::vector<Model>& models, aiNode *node, const aiScene 
     }
 }
 
-MeshHandle AssimpMeshLoader::Load(Scene& scene, std::filesystem::path path) const
+Model AssimpModelLoader::Load(const std::filesystem::path& path, bool smoothNormals) const
 {
     uint32_t flags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_FlipWindingOrder;
-    if(SmoothNormals)
+    if(smoothNormals)
     {
         flags |= aiProcess_GenSmoothNormals;
     }
@@ -88,10 +88,10 @@ MeshHandle AssimpMeshLoader::Load(Scene& scene, std::filesystem::path path) cons
     if(!assimpScene || assimpScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !assimpScene->mRootNode)
     {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-        return nullptr;
+        return Model(std::vector<DefaultVertex>(), std::vector<uint32_t>());
     }
 
     std::vector<Model> models;
     ProcessNode(models, assimpScene->mRootNode, assimpScene);
-    return scene.CreateMesh(models[0]);
+    return models[0];
 }
