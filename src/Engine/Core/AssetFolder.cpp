@@ -4,14 +4,14 @@
 
 #include "Scene.hpp"
 
-BitmapBaseHandle AssetFolder::LoadBitmap(std::string_view fileName, const PixelFormat& desiredFormat) const
+BitmapBaseHandle AssetFolder::LoadBitmap(std::string_view fileName, PixelFormat* desiredFormat) const
 {
     return m_assetLoaders.BitmapLoader->Load(Path / fileName, desiredFormat);
 }
 
 MeshHandle AssetFolder::LoadTerrain(std::string_view fileName) const
 {
-    return m_assetLoaders.SourceScene.CreateTerrain(HeightMap(LoadBitmap<uint8_t>(fileName)));
+    return m_assetLoaders.SourceScene.CreateTerrain(HeightMap(LoadBitmap<glm::u8vec1>(fileName)));
 }
 
 MeshHandle AssetFolder::LoadMesh(std::string_view fileName, bool smoothNormals) const
@@ -20,7 +20,7 @@ MeshHandle AssetFolder::LoadMesh(std::string_view fileName, bool smoothNormals) 
 }
 
 TextureAtlasHandle AssetFolder::LoadTextureAtlas(
-    std::string_view fileName, const PixelFormat& format,
+    std::string_view fileName, PixelFormat* format,
     MinFilterMode minFilter, MagFilterMode magFilter,
     TextureWrappingMode wrappingMode) const
 {

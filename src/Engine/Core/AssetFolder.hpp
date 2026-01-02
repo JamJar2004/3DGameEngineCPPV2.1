@@ -23,7 +23,7 @@ struct BitmapLoaderBase
 {
     virtual ~BitmapLoaderBase() = default;
 
-    [[nodiscard]] virtual BitmapBaseHandle Load(const std::filesystem::path& path, const PixelFormat& desiredFormat) const = 0;
+    [[nodiscard]] virtual BitmapBaseHandle Load(const std::filesystem::path& path, PixelFormat* desiredFormat) const = 0;
 };
 
 struct SoundLoaderBase
@@ -67,20 +67,20 @@ public:
 
     [[nodiscard]] AssetFolder Navigate(std::string_view name) const { return AssetFolder(m_assetLoaders, Path / name); }
 
-    template<typename Pixel>
-    BitmapHandle<Pixel> LoadBitmap(std::string_view fileName) const
+    template<Vector TPixel>
+    BitmapHandle<TPixel> LoadBitmap(std::string_view fileName) const
     {
-        const BitmapBaseHandle result = LoadBitmap(fileName, PixelFormat::GetFormat<Pixel>());
-        return std::dynamic_pointer_cast<Bitmap<Pixel>>(result);
+        const BitmapBaseHandle result = LoadBitmap(fileName, PixelFormat::Get<TPixel>());
+        return std::dynamic_pointer_cast<Bitmap<TPixel>>(result);
     }
 
-    [[nodiscard]] BitmapBaseHandle LoadBitmap(std::string_view fileName, const PixelFormat& desiredFormat) const;
+    [[nodiscard]] BitmapBaseHandle LoadBitmap(std::string_view fileName, PixelFormat* desiredFormat) const;
 
     [[nodiscard]] MeshHandle LoadTerrain(std::string_view fileName) const;
 
     [[nodiscard]] MeshHandle LoadMesh(std::string_view fileName, bool smoothNormals = true) const;
 
-    [[nodiscard]] TextureAtlasHandle LoadTextureAtlas(std::string_view fileName, const PixelFormat& format, MinFilterMode minFilter = MinFilterMode::LinearMipmapLinear, MagFilterMode magFilter = MagFilterMode::Linear, TextureWrappingMode wrappingMode = TextureWrappingMode::Tiled) const;
+    [[nodiscard]] TextureAtlasHandle LoadTextureAtlas(std::string_view fileName, PixelFormat* format, MinFilterMode minFilter = MinFilterMode::LinearMipmapLinear, MagFilterMode magFilter = MagFilterMode::Linear, TextureWrappingMode wrappingMode = TextureWrappingMode::Tiled) const;
 
     [[nodiscard]] ShaderHandle LoadShader(std::string_view fileName) const;
 
@@ -89,8 +89,10 @@ public:
     [[nodiscard]] MusicHandle LoadMusic(std::string_view fileName) const;
 
     [[nodiscard]] FontHandle LoadFont(std::string_view fileName) const;
+
+    friend class Scene;
 private:
     AssetLoaders& m_assetLoaders;
 
-    explicit AssetFolder(AssetLoaders& assetLoaders, std::filesystem::path path) : m_assetLoaders(assetLoaders), Path(std::move(path)) {}
+    explicit AssetFolder(AssetLoaders& assetLoaders, std::filesystem::path path) : Path(std::move(path)), m_assetLoaders(assetLoaders) {}
 };

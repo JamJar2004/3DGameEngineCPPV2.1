@@ -5,5 +5,5 @@
 
 struct STBBitmapLoader final : BitmapLoaderBase
 {
-    [[nodiscard]] BitmapBaseHandle Load(const std::filesystem::path& path, const PixelFormat& desiredFormat) const override;
+    [[nodiscard]] BitmapBaseHandle Load(const std::filesystem::path& path, PixelFormat* desiredFormat) const override;
 };

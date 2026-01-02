@@ -2,16 +2,20 @@
 
 #include "SpecularMaterial.hpp"
 
-struct NormalMappedMaterial : SpecularMaterial
+struct NormalMappedMaterial final
 {
     NormalMappedMaterial(
         const glm::vec3& color,
         float specularIntensity,
-        const glm::vec2& tilingFactor,
-        const glm::vec2& textureRegion,
-        const glm::vec2& normalMapRegion) :
-            SpecularMaterial(color, specularIntensity, tilingFactor, textureRegion),
-            NormalMapRegion(normalMapRegion) {}
+        const glm::vec2& tilingFactor) :
+            Color(color),
+            SpecularIntensity(specularIntensity),
+            TilingFactor(tilingFactor) {}
 
-    glm::vec2 NormalMapRegion;
+    glm::vec3 Color;
+    float     SpecularIntensity;
+    glm::vec2 TilingFactor;
+
+    MaterialTextureInfo AlbedoTexture;
+    MaterialTextureInfo NormalTexture;
 };

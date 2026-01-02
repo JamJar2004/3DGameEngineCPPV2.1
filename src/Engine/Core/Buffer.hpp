@@ -1,50 +1,20 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <vector>
 
 #include "Reflection.hpp"
-#include "Engine/Rendering/Common.hpp"
 
-class BufferAttribute
+struct BufferAttribute
 {
-public:
-	BufferAttribute(ElementType type, size_t count, size_t offset) :
-		Type(type), Count(count), Offset(offset) {}
+	BufferAttribute(TypeInfo* type, size_t count, size_t offset) :
+		ElementType(type), Count(count), Offset(offset) {}
 
-	ElementType Type;
-	size_t      Count;
-	size_t      Offset;
+	TypeInfo* ElementType;
+	size_t    Count;
+	size_t    Offset;
 
-	[[nodiscard]] size_t SizeInBytes() const { return Count * GetTypeSize(); }
-private:
-	[[nodiscard]] size_t GetTypeSize() const
-	{
-		switch(Type)
-		{
-			case ElementType::UInt8:
-				return sizeof(uint8_t);
-			case ElementType::UInt16:
-				return sizeof(uint16_t);
-			case ElementType::UInt32:
-				return sizeof(uint32_t);
-			case ElementType::UInt64:
-				return sizeof(uint64_t);
-			case ElementType::SInt8:
-				return sizeof(int8_t);
-			case ElementType::SInt16:
-				return sizeof(int16_t);
-			case ElementType::SInt32:
-				return sizeof(int32_t);
-			case ElementType::SInt64:
-				return sizeof(int64_t);
-			case ElementType::Float32:
-				return sizeof(float);
-			case ElementType::Float64:
-				return sizeof(double);
-		}
-
-		return 0;
-	}
+	[[nodiscard]] size_t SizeInBytes() const { return Count * ElementType->Size; }
 };
 
 class BufferLayout
@@ -52,7 +22,7 @@ class BufferLayout
 public:
 	BufferLayout() : m_stride(0) {}
 
-	void AddAttribute(ElementType type, size_t count)
+	void AddAttribute(TypeInfo* type, size_t count)
 	{
 		const auto& element = m_attributes.emplace_back(type, count, m_stride);
 		m_stride += element.SizeInBytes();
@@ -63,77 +33,12 @@ public:
 	template<ShallowCopyable T>
 	void AddAttribute() {}
 
-
 	[[nodiscard]] auto begin() const { return m_attributes.begin(); }
 	[[nodiscard]] auto end()   const { return m_attributes.end();   }
 private:
 	std::vector<BufferAttribute> m_attributes;
 	size_t m_stride;
 };
-
-template<>
-inline void BufferLayout::AddAttribute<uint8_t>() { AddAttribute(ElementType::UInt8, 1); }
-
-template<>
-inline void BufferLayout::AddAttribute<int8_t>() { AddAttribute(ElementType::SInt8, 1); }
-
-template<>
-inline void BufferLayout::AddAttribute<uint32_t>() { AddAttribute(ElementType::UInt32, 1); }
-
-template<>
-inline void BufferLayout::AddAttribute<int32_t>() { AddAttribute(ElementType::SInt32, 1); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::ivec2>() { AddAttribute(ElementType::SInt32, 2); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::ivec3>() { AddAttribute(ElementType::SInt32, 3); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::ivec4>() { AddAttribute(ElementType::SInt32, 4); }
-
-template<>
-inline void BufferLayout::AddAttribute<float>() { AddAttribute(ElementType::Float32, 1); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::vec2>() { AddAttribute(ElementType::Float32, 2); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::vec3>() { AddAttribute(ElementType::Float32, 3); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::vec4>() { AddAttribute(ElementType::Float32, 4); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::mat2>() { AddAttribute(ElementType::Float32, 2 * 2); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::mat3>() { AddAttribute(ElementType::Float32, 3 * 3); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::mat4>() { AddAttribute(ElementType::Float32, 4 * 4); }
-
-template<>
-inline void BufferLayout::AddAttribute<double>() { AddAttribute(ElementType::Float64, 1); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::dvec2>() { AddAttribute(ElementType::Float64, 2); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::dvec3>() { AddAttribute(ElementType::Float64, 3); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::dvec4>() { AddAttribute(ElementType::Float64, 4); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::dmat2>() { AddAttribute(ElementType::Float64, 2 * 2); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::dmat3>() { AddAttribute(ElementType::Float64, 3 * 3); }
-
-template<>
-inline void BufferLayout::AddAttribute<glm::dmat4>() { AddAttribute(ElementType::Float64, 4 * 4); }
-
 
 template<typename T>
 concept HasLayout = ShallowCopyable<T> && requires

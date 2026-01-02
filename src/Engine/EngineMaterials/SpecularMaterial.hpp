@@ -1,6 +1,6 @@
 #pragma once
 
-struct SpecularMaterial
+struct SpecularMaterial final
 {
     SpecularMaterial(
         const glm::vec3& color,
