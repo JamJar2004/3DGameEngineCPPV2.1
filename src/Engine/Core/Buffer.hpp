@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory.h>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -85,10 +86,12 @@ public:
 
 	Buffer(const Buffer& source) : m_elements(source.m_elements) {}
 
+	explicit Buffer(ConstBufferSlice<TElement> source);
+
 	      TElement& operator[](size_t index)       { return m_elements[index]; }
 	const TElement& operator[](size_t index) const { return m_elements[index]; }
 
-	TypeInfo* GetElementType() const override { return TypeInfo::Get<TElement>(); }
+	[[nodiscard]] TypeInfo* GetElementType() const override { return TypeInfo::Get<TElement>(); }
 
 	[[nodiscard]]       void* Data()       override { return m_elements.data(); }
 	[[nodiscard]] const void* Data() const override { return m_elements.data(); }
@@ -194,6 +197,12 @@ private:
 	const TElement* m_address;
 	      size_t    m_count;
 };
+
+template<ShallowCopyable TElement>
+Buffer<TElement>::Buffer(ConstBufferSlice<TElement> source) : Buffer(source.Count(), TElement())
+{
+	source.CopyTo(*this);
+}
 
 template<ShallowCopyable TElement>
 BufferSlice<TElement> Buffer<TElement>::AsSlice()
